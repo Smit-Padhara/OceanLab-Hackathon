@@ -8,8 +8,10 @@ export default function Auth() {
   const isRegistering = searchParams.get('tab') === 'register';
   
   const [isLogin, setIsLogin] = useState(!isRegistering);
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
@@ -41,9 +43,17 @@ export default function Auth() {
           }
         }
       } else {
+        if (password !== confirmPassword) {
+          throw new Error("Passwords do not match");
+        }
         const { error, data } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: fullName,
+            }
+          }
         });
         if (error) throw error;
         setMessage('Check your email for the confirmation link! (If email confirmation is disabled, you can log in now)');
@@ -81,6 +91,19 @@ export default function Auth() {
         )}
 
         <form onSubmit={handleAuth} className="space-y-4">
+          {!isLogin && (
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-1.5">Full Name</label>
+              <input 
+                type="text" 
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-white"
+                placeholder="John Doe"
+                required={!isLogin}
+              />
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-zinc-300 mb-1.5">Email</label>
             <input 
@@ -103,6 +126,19 @@ export default function Auth() {
               required
             />
           </div>
+          {!isLogin && (
+            <div>
+              <label className="block text-sm font-medium text-zinc-300 mb-1.5">Confirm Password</label>
+              <input 
+                type="password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-white"
+                placeholder="••••••••"
+                required={!isLogin}
+              />
+            </div>
+          )}
 
           <button 
             type="submit"
