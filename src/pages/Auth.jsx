@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { GlassCard, GradientButton, InputField, GlowText } from '../components/WatermelonUI';
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -46,7 +47,7 @@ export default function Auth() {
         if (password !== confirmPassword) {
           throw new Error("Passwords do not match");
         }
-        const { error, data } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -80,105 +81,101 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-purple-600/10 blur-[100px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[20%] left-[10%] w-[30%] h-[30%] bg-blue-600/10 blur-[100px] rounded-full pointer-events-none" />
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6 relative overflow-hidden font-sans">
+      {/* Animated Background Orbs (Watermelon UI style) */}
+      <div className="absolute top-[10%] right-[5%] w-[40%] h-[40%] bg-pink-600/20 blur-[150px] rounded-full pointer-events-none animate-[float_10s_ease-in-out_infinite]" />
+      <div className="absolute bottom-[10%] left-[5%] w-[40%] h-[40%] bg-blue-600/20 blur-[150px] rounded-full pointer-events-none animate-[float_12s_ease-in-out_infinite_reverse]" style={{ animationDelay: '1s'}} />
+      <div className="absolute top-[40%] left-[40%] w-[20%] h-[20%] bg-purple-600/20 blur-[100px] rounded-full pointer-events-none animate-pulse duration-1000" />
 
-      <div className="w-full max-w-md bg-zinc-900/50 backdrop-blur-xl border border-zinc-800/60 rounded-3xl p-8 z-10 shadow-2xl">
-        <h2 className="text-3xl font-bold text-center mb-2">
-          {isLogin ? 'Welcome Back' : 'Create Account'}
+      <GlassCard className="w-full max-w-md p-8 md:p-10 z-10 opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards]">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-3">
+          <GlowText>{isLogin ? 'Welcome Back' : 'Create Account'}</GlowText>
         </h2>
-        <p className="text-zinc-400 text-center mb-8">
+        <p className="text-zinc-400 text-center mb-8 font-light">
           {isLogin ? 'Enter your details to access your account' : 'Join the network of top student builders'}
         </p>
 
         {error && (
-          <div className="mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-[fadeIn_0.3s_ease-out]">
             {error}
           </div>
         )}
         
         {message && (
-          <div className="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
+          <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm shadow-[0_0_15px_rgba(16,185,129,0.2)] animate-[fadeIn_0.3s_ease-out]">
             {message}
           </div>
         )}
 
-        <form onSubmit={handleAuth} className="space-y-4">
+        <form onSubmit={handleAuth} className="space-y-5">
           {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-1.5">Full Name</label>
-              <input 
-                type="text" 
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-white"
-                placeholder="John Doe"
-                required={!isLogin}
-              />
-            </div>
+            <InputField 
+              label="Full Name"
+              type="text" 
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="John Doe"
+              required={!isLogin}
+            />
           )}
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1.5">Email</label>
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-white"
-              placeholder="you@college.edu"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1.5">Password</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-white"
-              placeholder="••••••••"
-              required
-            />
-          </div>
+          
+          <InputField 
+            label="Email"
+            type="email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@college.edu"
+            required
+          />
+          
+          <InputField 
+            label="Password"
+            type="password" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            required
+          />
+          
           {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-1.5">Confirm Password</label>
-              <input 
-                type="password" 
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-white"
-                placeholder="••••••••"
-                required={!isLogin}
-              />
-            </div>
+            <InputField 
+              label="Confirm Password"
+              type="password" 
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              required={!isLogin}
+            />
           )}
 
-          <button 
-            type="submit"
-            disabled={loading}
-            className="w-full bg-white text-zinc-950 font-semibold py-3.5 rounded-xl hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 mt-2"
-          >
-            {loading && <Loader2 className="w-5 h-5 animate-spin" />}
-            {isLogin ? 'Sign In' : 'Register'}
-            {!loading && <ArrowRight className="w-5 h-5" />}
-          </button>
+          <div className="pt-2">
+            <GradientButton 
+              type="submit"
+              loading={loading}
+              className="w-full"
+              icon={<ArrowRight className="w-5 h-5" />}
+            >
+              {isLogin ? 'Sign In' : 'Register'}
+            </GradientButton>
+          </div>
         </form>
 
-        <div className="relative my-6">
+        <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-zinc-800"></div>
+            <div className="w-full border-t border-white/10"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-zinc-900/50 text-zinc-500">Or continue with</span>
+            <span className="px-3 bg-zinc-950/20 text-zinc-400 backdrop-blur-md rounded-full border border-white/5">
+              Or continue with
+            </span>
           </div>
         </div>
 
         <button 
           onClick={handleGoogleAuth}
-          className="w-full bg-zinc-950 border border-zinc-800 text-white font-medium py-3 rounded-xl hover:bg-zinc-800 transition-colors flex items-center justify-center gap-3"
+          className="w-full bg-white/5 border border-white/10 text-white font-semibold py-3.5 rounded-xl hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all duration-300 flex items-center justify-center gap-3 group"
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
             <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -193,12 +190,27 @@ export default function Auth() {
           <button 
             type="button"
             onClick={() => setIsLogin(!isLogin)}
-            className="text-purple-400 hover:text-purple-300 font-medium transition-colors"
+            className="text-pink-400 hover:text-pink-300 font-semibold transition-colors hover:drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]"
           >
             {isLogin ? 'Register now' : 'Sign in'}
           </button>
         </div>
-      </div>
+      </GlassCard>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes float {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-30px) scale(1.05); }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}} />
     </div>
   );
 }
