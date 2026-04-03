@@ -51,28 +51,79 @@ export default function Connections() {
   useEffect(() => {
     if (!currentUser) return;
 
-    // Realtime: when a new connection is created that involves current user
-    const channel = supabase.channel(`connections-for-${currentUser.id}`)
+    // Realtime: when connection things change
+    const channel = supabase.channel(`networking-for-${currentUser.id}`)
+      // 1. New mutual connections (from acceptance)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'connections'
       }, (payload) => {
         const { user1_id, user2_id } = payload.new;
-        // Only react if this connection involves me
         if (user1_id === currentUser.id || user2_id === currentUser.id) {
           const otherUserId = user1_id === currentUser.id ? user2_id : user1_id;
-          // Add to established connections — causes "Message" button to show for both users
           setEstablishedConnections(prev => new Set([...prev, otherUserId]));
-          // Remove from pending states
           setRequestedUsers(prev => { const s = new Set(prev); s.delete(otherUserId); return s; });
           setPendingReceived(prev => { const s = new Set(prev); s.delete(otherUserId); return s; });
         }
       })
+      // 2. New connection requests (someone sent me a request)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'connection_requests'
+      }, (payload) => {
+        const { sender_id, receiver_id, status } = payload.new;
+        if (receiver_id === currentUser.id && status === 'pending') {
+          setPendingReceived(prev => new Set([...prev, sender_id]));
+        } else if (sender_id === currentUser.id && status === 'pending') {
+          setRequestedUsers(prev => new Set([...prev, receiver_id]));
+        }
+      })
+      // 3. Requests deleted (withdrawn or rejected)
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'connection_requests'
+      }, (payload) => {
+        // NOTE: DELETE payload might not have receiver_id/sender_id if it's not REPLICA IDENTITY FULL
+        // But for our case, we'll try to use the 'old' record if available
+        const old = payload.old;
+        if (old) {
+          const { sender_id, receiver_id } = old;
+          if (sender_id === currentUser.id) {
+            setRequestedUsers(prev => { const s = new Set(prev); s.delete(receiver_id); return s; });
+          } else if (receiver_id === currentUser.id) {
+            setPendingReceived(prev => { const s = new Set(prev); s.delete(sender_id); return s; });
+          }
+        } else {
+          // If payload.old is missing, we might have to re-fetch or use a more specific channel
+          // But usually we can dispatch a local event too
+        }
+      })
       .subscribe();
+
+    // Local Event: dashboard acceptances/rejections in SAME tab
+    const handleAccept = (e) => {
+      const otherUserId = e.detail;
+      setEstablishedConnections(prev => new Set([...prev, otherUserId]));
+      setRequestedUsers(prev => { const s = new Set(prev); s.delete(otherUserId); return s; });
+      setPendingReceived(prev => { const s = new Set(prev); s.delete(otherUserId); return s; });
+    };
+
+    const handleReject = (e) => {
+      const otherUserId = e.detail;
+      setPendingReceived(prev => { const s = new Set(prev); s.delete(otherUserId); return s; });
+      setRequestedUsers(prev => { const s = new Set(prev); s.delete(otherUserId); return s; });
+    };
+
+    window.addEventListener('connectionAccepted', handleAccept);
+    window.addEventListener('requestRejected', handleReject);
 
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener('connectionAccepted', handleAccept);
+      window.removeEventListener('requestRejected', handleReject);
     };
   }, [currentUser]);
 
@@ -169,12 +220,44 @@ export default function Connections() {
     if (requestedUsers.has(receiverId) || establishedConnections.has(receiverId) || pendingReceived.has(receiverId)) return;
 
     try {
+      // Use upsert to handle cases where a record might already exist (e.g. previously rejected)
+      // but we want to reset it to pending.
       const { error } = await supabase
         .from('connection_requests')
-        .insert({ sender_id: currentUser.id, receiver_id: receiverId, status: 'pending' });
+        .upsert({ 
+          sender_id: currentUser.id, 
+          receiver_id: receiverId, 
+          status: 'pending' 
+        }, { 
+          onConflict: 'sender_id, receiver_id' 
+        });
         
       if (!error) {
         setRequestedUsers(prev => new Set([...prev, receiverId]));
+      } else {
+        console.error("Connect error:", error.message);
+      }
+    } catch (err) {
+      console.error("Connect exception:", err);
+    }
+  };
+
+  const handleWithdraw = async (receiverId) => {
+    if (!currentUser) return;
+    try {
+      const { error } = await supabase
+        .from('connection_requests')
+        .delete()
+        .eq('sender_id', currentUser.id)
+        .eq('receiver_id', receiverId)
+        .eq('status', 'pending');
+
+      if (!error) {
+        setRequestedUsers(prev => {
+          const s = new Set(prev);
+          s.delete(receiverId);
+          return s;
+        });
       }
     } catch (err) {
       console.error(err);
@@ -336,33 +419,34 @@ export default function Connections() {
                 </div>
 
                 {establishedConnections.has(user.id) ? (
-                  <button 
+                  <button
                     onClick={() => navigate(`/messages?with=${user.id}`)}
-                    className="w-full py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 bg-purple-500/10 text-purple-400 border border-purple-500/30 hover:bg-purple-500/20 hover:scale-[1.02] active:scale-95">
+                    className="w-full py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 bg-purple-500/10 text-purple-400 border border-purple-500/30 hover:bg-purple-500/20 hover:scale-[1.02] active:scale-95"
+                  >
                     <MessageSquare className="w-4 h-4" /> Message
                   </button>
+                ) : requestedUsers.has(user.id) ? (
+                  <button
+                    onClick={() => handleWithdraw(user.id)}
+                    className="w-full py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 group bg-zinc-800/60 text-zinc-400 border border-zinc-700/50 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/40 hover:scale-[1.02] active:scale-95"
+                    title="Click to withdraw request"
+                  >
+                    <span className="flex items-center gap-2 group-hover:hidden"><Clock className="w-4 h-4" /> Pending</span>
+                    <span className="hidden group-hover:flex items-center gap-2"><X className="w-4 h-4" /> Withdraw</span>
+                  </button>
                 ) : pendingReceived.has(user.id) ? (
-                  <button 
+                  <button
                     disabled
-                    className="w-full py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 bg-pink-500/10 text-pink-400 border border-pink-500/30"
+                    className="w-full py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 bg-pink-500/10 text-pink-400 border border-pink-500/30 cursor-default"
                   >
                     <Check className="w-4 h-4" /> Requested You
                   </button>
                 ) : (
-                  <button 
+                  <button
                     onClick={() => handleConnect(user.id)}
-                    disabled={requestedUsers.has(user.id)}
-                    className={`w-full py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${
-                      requestedUsers.has(user.id) 
-                        ? 'bg-zinc-800/50 text-zinc-400 border border-zinc-700/50 cursor-not-allowed'
-                        : 'bg-white/10 text-white border border-white/20 hover:bg-gradient-to-r hover:from-pink-500/80 hover:to-purple-600/80 hover:border-transparent hover:shadow-[0_0_15px_rgba(219,39,119,0.4)] hover:scale-[1.02] active:scale-95'
-                    }`}
+                    className="w-full py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 bg-white/10 text-white border border-white/20 hover:bg-gradient-to-r hover:from-pink-500/80 hover:to-purple-600/80 hover:border-transparent hover:shadow-[0_0_15px_rgba(219,39,119,0.4)] hover:scale-[1.02] active:scale-95"
                   >
-                    {requestedUsers.has(user.id) ? (
-                      <><Clock className="w-4 h-4" /> Pending</>
-                    ) : (
-                      <><UserPlus className="w-4 h-4" /> Connect</>
-                    )}
+                    <UserPlus className="w-4 h-4" /> Connect
                   </button>
                 )}
               </GlassCard>
@@ -372,6 +456,7 @@ export default function Connections() {
                 <p className="text-zinc-400 font-semibold">No people in your domain yet</p>
                 <p className="text-zinc-600 text-sm">More people will appear here as they join TalentMash with the same domain as you.</p>
               </div>
+
             )}
           </div>
         )}

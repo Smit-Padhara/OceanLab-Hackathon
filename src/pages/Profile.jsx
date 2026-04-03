@@ -176,10 +176,15 @@ export default function Profile() {
             {profile.domain}
         </div>
         
-        <div className="bg-zinc-900/40 border border-zinc-800 rounded-3xl p-6 mt-6 flex flex-col items-center justify-center min-w-[140px] shadow-inner">
-          <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-500 mb-1">{connectionCount}</span>
-          <span className="text-sm font-semibold text-zinc-500 uppercase tracking-wider text-center">Connections</span>
-        </div>
+        <Link 
+          to="/my-connections"
+          className="bg-zinc-900/40 border border-zinc-800 rounded-3xl p-6 mt-6 flex flex-col items-center justify-center min-w-[140px] shadow-inner hover:border-purple-500/40 hover:bg-purple-500/5 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all duration-300 cursor-pointer group"
+          title="View your connections"
+        >
+          <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-500 mb-1 group-hover:from-pink-300 group-hover:to-purple-400 transition-all">{connectionCount}</span>
+          <span className="text-sm font-semibold text-zinc-500 uppercase tracking-wider text-center group-hover:text-purple-400 transition-colors">Connections</span>
+          <span className="text-[10px] text-zinc-600 mt-1 group-hover:text-zinc-400 transition-colors">View all →</span>
+        </Link>
       </div>
 
       <div className="flex-1 w-full space-y-6 md:ml-8 mt-8 md:mt-0">

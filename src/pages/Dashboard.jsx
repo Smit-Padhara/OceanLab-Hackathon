@@ -140,14 +140,16 @@ export default function Dashboard() {
     }
   };
 
-  const handleRejectRequest = async (requestId) => {
+  const handleRejectRequest = async (requestId, senderId) => {
     try {
       await supabase
         .from('connection_requests')
-        .update({ status: 'rejected' })
+        .delete()
         .eq('id', requestId);
 
       setConnectionRequests(prev => prev.filter(r => r.id !== requestId));
+      // Notify Connections UI to update locally
+      window.dispatchEvent(new CustomEvent('requestRejected', { detail: senderId }));
     } catch (err) {
       console.error('Error rejecting request:', err);
     }
@@ -238,7 +240,7 @@ export default function Dashboard() {
                                   Accept
                                 </button>
                                 <button 
-                                  onClick={() => handleRejectRequest(req.id)}
+                                  onClick={() => handleRejectRequest(req.id, req.sender_id)}
                                   className="flex-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-zinc-800/80 text-zinc-300 hover:bg-zinc-700 hover:text-white transition-all border border-zinc-700/50"
                                 >
                                   Reject
