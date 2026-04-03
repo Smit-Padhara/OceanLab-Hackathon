@@ -15,7 +15,6 @@ export default function Auth() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [message, setMessage] = useState(null);
   
   const navigate = useNavigate();
 
@@ -23,7 +22,6 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setMessage(null);
 
     try {
       if (isLogin) {
@@ -47,7 +45,7 @@ export default function Auth() {
         if (password !== confirmPassword) {
           throw new Error("Passwords do not match");
         }
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -57,7 +55,15 @@ export default function Auth() {
           }
         });
         if (error) throw error;
-        setMessage('Check your email for the confirmation link! (If email confirmation is disabled, you can log in now)');
+        
+        if (data?.session) {
+          const { data: profile } = await supabase.from('profiles').select('is_onboarded').eq('id', data.user.id).single();
+          if (profile?.is_onboarded) {
+             navigate('/dashboard');
+          } else {
+             navigate('/onboarding');
+          }
+        }
       }
     } catch (err) {
       setError(err.message);
@@ -98,12 +104,6 @@ export default function Auth() {
         {error && (
           <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-[fadeIn_0.3s_ease-out]">
             {error}
-          </div>
-        )}
-        
-        {message && (
-          <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm shadow-[0_0_15px_rgba(16,185,129,0.2)] animate-[fadeIn_0.3s_ease-out]">
-            {message}
           </div>
         )}
 
