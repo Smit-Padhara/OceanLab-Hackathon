@@ -12,6 +12,7 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [user, setUser] = useState(null);
   const [toast, setToast] = useState(null);
+  const [connectionCount, setConnectionCount] = useState(0);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -41,6 +42,13 @@ export default function Profile() {
         .select('*')
         .eq('id', user.id)
         .single();
+        
+      const { count } = await supabase
+        .from('connections')
+        .select('*', { count: 'exact', head: true })
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+        
+      setConnectionCount(count || 0);
 
       if (data) {
         setProfile(data);
@@ -166,10 +174,15 @@ export default function Profile() {
           </div>
           <div className="bg-purple-500/10 text-purple-400 text-sm font-semibold px-4 py-1.5 rounded-full border border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
             {profile.domain}
-          </div>
         </div>
+        
+        <div className="bg-zinc-900/40 border border-zinc-800 rounded-3xl p-6 mt-6 flex flex-col items-center justify-center min-w-[140px] shadow-inner">
+          <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-500 mb-1">{connectionCount}</span>
+          <span className="text-sm font-semibold text-zinc-500 uppercase tracking-wider text-center">Connections</span>
+        </div>
+      </div>
 
-        <div className="flex-1 w-full space-y-6">
+      <div className="flex-1 w-full space-y-6 md:ml-8 mt-8 md:mt-0">
           <div>
             <h3 className="text-2xl font-bold text-zinc-100 mb-1">{profile.full_name}</h3>
             <p className="text-zinc-400 text-lg">{profile.college}</p>
