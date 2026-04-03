@@ -127,3 +127,24 @@ export const TagInput = ({ value, onChange, placeholder, label }) => {
     </div>
   );
 };
+
+export const AvatarUpload = ({ url, file, onChange }) => (
+  <div className="flex flex-col items-center mb-6">
+    <div className="relative w-32 h-32 mb-3 rounded-full overflow-hidden border-2 border-dashed border-pink-500/40 bg-black/20 hover:border-pink-500 hover:shadow-[0_0_20px_rgba(219,39,119,0.3)] transition-all duration-300 group flex items-center justify-center">
+      {(file || url) ? (
+        <img 
+          src={file ? URL.createObjectURL(file) : url} 
+          alt="Avatar" 
+          className="w-full h-full object-cover group-hover:opacity-50 transition-opacity duration-300" 
+        />
+      ) : (
+        <Camera className="w-10 h-10 text-pink-400 group-hover:scale-110 transition-transform duration-300" />
+      )}
+      <label className="absolute inset-0 cursor-pointer flex flex-col items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+        <Camera className="w-6 h-6 text-white mb-1" />
+        <span className="text-xs font-bold text-white drop-shadow-md">Change Photo</span>
+        <input type="file" accept="image/*" onChange={onChange} className="hidden" />
+      </label>
+    </div>
+  </div>
+);

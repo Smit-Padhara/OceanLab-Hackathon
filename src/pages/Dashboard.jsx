@@ -86,17 +86,19 @@ export default function Dashboard() {
           
           {/* User Snapshot */}
           <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-3xl p-6 flex flex-col items-center text-center">
-            <div className="w-20 h-20 rounded-full bg-zinc-800 mb-4 overflow-hidden outline outline-2 outline-offset-2 outline-zinc-800">
+            <Link to="/profile" title="View Profile" className="w-20 h-20 rounded-full bg-zinc-800 mb-4 overflow-hidden outline outline-2 outline-offset-2 outline-zinc-800 hover:outline-pink-500 hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(219,39,119,0.4)] cursor-pointer block">
               {profile.avatar_url ? (
                 <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-2xl font-bold bg-zinc-800 text-zinc-400">
-                  {profile.full_name?.charAt(0).toUpperCase()}
+                  {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : '?'}
                 </div>
               )}
-            </div>
-            <h2 className="font-semibold text-lg text-zinc-100">{profile.full_name}</h2>
-            <p className="text-zinc-400 text-sm mb-3">{profile.branch} • {profile.year}</p>
+            </Link>
+            <Link to="/profile" className="font-semibold text-lg text-zinc-100 hover:text-pink-400 transition-colors">
+              {profile.full_name}
+            </Link>
+            <p className="text-zinc-400 text-sm mb-3">{profile.branch} {profile.year && `• ${profile.year}`}</p>
             <div className="bg-purple-500/10 text-purple-400 text-xs font-medium px-3 py-1 rounded-full border border-purple-500/20">
               {profile.domain}
             </div>
