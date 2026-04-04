@@ -25,9 +25,9 @@ export default function Dashboard() {
         navigate('/auth');
         return;
       }
-      
+
       const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      
+
       if (error || !data) {
         navigate('/auth'); // In case of missing row
       } else if (!data.is_onboarded) {
@@ -46,7 +46,7 @@ export default function Dashboard() {
           .from('connections')
           .select('*', { count: 'exact', head: true })
           .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
-          
+
         setConnectionCount(count || 0);
 
         // Fetch pending requests
@@ -67,7 +67,7 @@ export default function Dashboard() {
             ...r,
             sender: senders?.find(s => s.id === r.sender_id)
           })).filter(r => r.sender); // ensure sender exists
-          
+
           setConnectionRequests(enriched);
         }
 
@@ -78,7 +78,7 @@ export default function Dashboard() {
           .eq('user_id', userId)
           .neq('sender_id', userId)
           .eq('status', 'pending');
-        
+
         setProjectInvitations(projectReqs || []);
 
       } catch (err) {
@@ -91,30 +91,30 @@ export default function Dashboard() {
     // Real-time listener for connection requests and connections
     const channel = supabase
       .channel('db-changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
         table: 'connection_requests',
-        filter: `receiver_id=eq.${profile?.id}` 
+        filter: `receiver_id=eq.${profile?.id}`
       }, () => {
         if (profile) fetchNotificationsAndCount(profile.id);
       })
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
         table: 'connections'
       }, (payload) => {
         if (profile && (payload.new.user1_id === profile.id || payload.new.user2_id === profile.id)) {
           fetchNotificationsAndCount(profile.id);
           // Also trigger the local event in case we're on the connections tab
-          window.dispatchEvent(new CustomEvent('connectionAccepted', { 
-            detail: payload.new.user1_id === profile.id ? payload.new.user2_id : payload.new.user1_id 
+          window.dispatchEvent(new CustomEvent('connectionAccepted', {
+            detail: payload.new.user1_id === profile.id ? payload.new.user2_id : payload.new.user1_id
           }));
         }
       })
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
         table: 'project_requests',
         filter: `user_id=eq.${profile?.id}`
       }, () => {
@@ -152,7 +152,7 @@ export default function Dashboard() {
       // 3. Update UI state
       setConnectionRequests(prev => prev.filter(r => r.id !== request.id));
       setConnectionCount(prev => prev + 1);
-      
+
       // Notify the Connections component to update its visible state immediately
       window.dispatchEvent(new CustomEvent('connectionAccepted', { detail: request.sender_id }));
     } catch (err) {
@@ -181,7 +181,7 @@ export default function Dashboard() {
         .from('project_requests')
         .update({ status: 'accepted' })
         .eq('id', invitation.id);
-      
+
       setProjectInvitations(prev => prev.filter(i => i.id !== invitation.id));
       // Trigger update in Projects component if active
       window.dispatchEvent(new CustomEvent('projectRequestUpdated'));
@@ -196,7 +196,7 @@ export default function Dashboard() {
         .from('project_requests')
         .update({ status: 'rejected' })
         .eq('id', invitationId);
-      
+
       setProjectInvitations(prev => prev.filter(i => i.id !== invitationId));
       window.dispatchEvent(new CustomEvent('projectRequestUpdated'));
     } catch (err) {
@@ -224,16 +224,16 @@ export default function Dashboard() {
           </Link>
           <div className="hidden md:flex relative group">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-purple-400 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Search peers, skills..." 
+            <input
+              type="text"
+              placeholder="Search peers, skills..."
               className="pl-10 pr-4 py-2 bg-zinc-950/50 border border-zinc-800 rounded-full text-sm outline-none w-64 focus:border-purple-500/50 focus:w-80 transition-all text-white placeholder-zinc-500"
             />
           </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="relative">
-            <button 
+            <button
               onClick={() => setShowNotifications(!showNotifications)}
               className="p-2 hover:bg-zinc-800 rounded-full text-zinc-400 hover:text-white transition-colors relative"
             >
@@ -254,7 +254,7 @@ export default function Dashboard() {
                     </span>
                   )}
                 </div>
-                
+
                 <div className="max-h-96 overflow-y-auto">
                   {connectionRequests.length === 0 ? (
                     <div className="p-8 text-center text-zinc-500 flex flex-col items-center gap-2">
@@ -323,10 +323,10 @@ export default function Dashboard() {
       </header>
 
       <div className="flex flex-1 max-w-7xl mx-auto w-full pt-6 px-6 gap-8">
-        
+
         {/* Sidebar */}
         <aside className="w-72 hidden md:flex flex-col gap-6 flex-shrink-0">
-          
+
           {/* User Snapshot */}
           <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-3xl p-6 flex flex-col items-center text-center">
             <Link to="/profile" title="View Profile" className="w-20 h-20 rounded-full bg-zinc-800 mb-4 overflow-hidden outline outline-2 outline-offset-2 outline-zinc-800 hover:outline-pink-500 hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-[0_0_20px_rgba(219,39,119,0.4)] cursor-pointer block">
@@ -345,9 +345,9 @@ export default function Dashboard() {
             <div className="bg-purple-500/10 text-purple-400 text-xs font-medium px-3 py-1 rounded-full border border-purple-500/20">
               {profile.domain}
             </div>
-            
+
             <div className="w-full h-px bg-zinc-800/60 my-5"></div>
-            
+
             <div className="w-full flex justify-between text-sm">
               <span className="text-zinc-500">Connections</span>
               <span className="font-semibold text-zinc-300">{connectionCount}</span>
@@ -357,26 +357,25 @@ export default function Dashboard() {
           {/* Navigation Links */}
           <nav className="flex flex-col gap-1">
             {navItems.map(item => {
-              const isActive = item.path === '/dashboard' 
-                ? location.pathname === '/dashboard' 
+              const isActive = item.path === '/dashboard'
+                ? location.pathname === '/dashboard'
                 : location.pathname.startsWith(item.path);
-              
+
               return (
-                <Link 
+                <Link
                   key={item.name}
                   to={item.path}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    isActive 
-                      ? 'bg-zinc-800/80 text-white shadow-sm' 
-                      : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/50'
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive
+                    ? 'bg-zinc-800/80 text-white shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/50'
+                    }`}
                 >
                   {item.icon}
                   {item.name}
                 </Link>
               )
             })}
-            <button 
+            <button
               onClick={handleSignOut}
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400/80 hover:text-red-400 hover:bg-red-500/10 mt-4 transition-all"
             >

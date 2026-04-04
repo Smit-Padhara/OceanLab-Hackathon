@@ -77,7 +77,7 @@ export default function Onboarding() {
           .upload(filePath, avatarFile, { upsert: true });
 
         if (uploadError) throw uploadError;
-        
+
         const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
         avatar_url = publicUrlData.publicUrl;
       }
@@ -105,7 +105,7 @@ export default function Onboarding() {
         .eq('id', user.id);
 
       if (updateError) throw updateError;
-      
+
       navigate('/dashboard');
     } catch (err) {
       setError(err.message);
@@ -124,10 +124,10 @@ export default function Onboarding() {
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center py-12 px-6 relative overflow-x-hidden font-sans">
       {/* Background Blobs (Watermelon UI style) */}
       <div className="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] bg-pink-600/20 blur-[150px] rounded-full pointer-events-none animate-[float_10s_ease-in-out_infinite]" />
-      <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 blur-[150px] rounded-full pointer-events-none animate-[float_12s_ease-in-out_infinite_reverse]" style={{ animationDelay: '1s'}} />
+      <div className="fixed bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 blur-[150px] rounded-full pointer-events-none animate-[float_12s_ease-in-out_infinite_reverse]" style={{ animationDelay: '1s' }} />
 
       <GlassCard className="w-full max-w-2xl p-8 md:p-12 z-10 opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards]">
-        
+
         <div className="mb-10 text-center">
           <h1 className="text-4xl font-bold tracking-tight mb-3">
             <GlowText>Complete Your Profile</GlowText>
@@ -142,38 +142,38 @@ export default function Onboarding() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-7">
-          
+
           <FileUpload file={avatarFile} onChange={handleFileChange} />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField 
-              label="Full Name *" 
-              required 
-              name="full_name" 
-              value={formData.full_name} 
-              onChange={handleChange} 
-              placeholder="Elon Musk" 
+            <InputField
+              label="Full Name *"
+              required
+              name="full_name"
+              value={formData.full_name}
+              onChange={handleChange}
+              placeholder="Elon Musk"
             />
-            <InputField 
-              label="College *" 
-              required 
-              name="college" 
-              value={formData.college} 
-              onChange={handleChange} 
-              placeholder="University of Examples" 
+            <InputField
+              label="College *"
+              required
+              name="college"
+              value={formData.college}
+              onChange={handleChange}
+              placeholder="University of Examples"
             />
-            <InputField 
-              label="Branch / Major *" 
-              required 
-              name="branch" 
-              value={formData.branch} 
-              onChange={handleChange} 
-              placeholder="Computer Science" 
+            <InputField
+              label="Branch / Major *"
+              required
+              name="branch"
+              value={formData.branch}
+              onChange={handleChange}
+              placeholder="Computer Science"
             />
-            <SelectField 
-              label="Year *" 
-              name="year" 
-              value={formData.year} 
+            <SelectField
+              label="Year *"
+              name="year"
+              value={formData.year}
               onChange={handleChange}
             >
               {YEARS.map(y => <option key={y} value={y} className="bg-zinc-900 text-white">{y}</option>)}
@@ -183,54 +183,54 @@ export default function Onboarding() {
           <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-8" />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <SelectField 
-              label="Primary Domain *" 
-              name="domain" 
-              value={formData.domain} 
+            <SelectField
+              label="Primary Domain *"
+              name="domain"
+              value={formData.domain}
               onChange={handleChange}
             >
               {DOMAINS.map(d => <option key={d} value={d} className="bg-zinc-900 text-white">{d}</option>)}
             </SelectField>
-            
-            <TagInput 
-              label="Skills *" 
-              value={formData.skills} 
-              onChange={handleTagsChange} 
+
+            <TagInput
+              label="Skills *"
+              value={formData.skills}
+              onChange={handleTagsChange}
               placeholder="Type & press Enter (e.g. React)"
             />
           </div>
 
-          <TextAreaField 
-            label="Bio / Interests (Optional)" 
-            name="interests" 
-            value={formData.interests} 
-            onChange={handleChange} 
-            rows={3} 
-            placeholder="What are you passionate about? I love building scalable web apps..." 
+          <TextAreaField
+            label="Bio / Interests (Optional)"
+            name="interests"
+            value={formData.interests}
+            onChange={handleChange}
+            rows={3}
+            placeholder="What are you passionate about? I love building scalable web apps..."
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField 
-              label="GitHub URL (Optional)" 
-              name="github_link" 
-              type="url" 
-              value={formData.github_link} 
-              onChange={handleChange} 
-              placeholder="https://github.com/you" 
+            <InputField
+              label="GitHub URL (Optional)"
+              name="github_link"
+              type="url"
+              value={formData.github_link}
+              onChange={handleChange}
+              placeholder="https://github.com/you"
             />
-            <InputField 
-              label="LinkedIn URL (Optional)" 
-              name="linkedin_link" 
-              type="url" 
-              value={formData.linkedin_link} 
-              onChange={handleChange} 
-              placeholder="https://linkedin.com/in/you" 
+            <InputField
+              label="LinkedIn URL (Optional)"
+              name="linkedin_link"
+              type="url"
+              value={formData.linkedin_link}
+              onChange={handleChange}
+              placeholder="https://linkedin.com/in/you"
             />
           </div>
 
           <div className="pt-8">
-            <GradientButton 
-              type="submit" 
+            <GradientButton
+              type="submit"
               loading={saving}
               className="w-full"
             >
@@ -239,8 +239,9 @@ export default function Onboarding() {
           </div>
         </form>
       </GlassCard>
-      
-      <style dangerouslySetInnerHTML={{__html: `
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes float {
           0%, 100% { transform: translateY(0) scale(1); }
           50% { transform: translateY(-30px) scale(1.05); }

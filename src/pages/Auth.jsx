@@ -7,7 +7,7 @@ import { GlassCard, GradientButton, InputField, GlowText } from '../components/W
 export default function Auth() {
   const [searchParams] = useSearchParams();
   const isRegistering = searchParams.get('tab') === 'register';
-  
+
   const [isLogin, setIsLogin] = useState(!isRegistering);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -15,7 +15,7 @@ export default function Auth() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const navigate = useNavigate();
 
   const handleAuth = async (e) => {
@@ -30,15 +30,15 @@ export default function Auth() {
           password,
         });
         if (error) throw error;
-        
+
         // Check if profile exists and onboarding is complete
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: profile } = await supabase.from('profiles').select('is_onboarded').eq('id', user.id).single();
           if (profile?.is_onboarded) {
-             navigate('/dashboard');
+            navigate('/dashboard');
           } else {
-             navigate('/onboarding');
+            navigate('/onboarding');
           }
         }
       } else {
@@ -55,13 +55,13 @@ export default function Auth() {
           }
         });
         if (error) throw error;
-        
+
         if (data?.session) {
           const { data: profile } = await supabase.from('profiles').select('is_onboarded').eq('id', data.user.id).single();
           if (profile?.is_onboarded) {
-             navigate('/dashboard');
+            navigate('/dashboard');
           } else {
-             navigate('/onboarding');
+            navigate('/onboarding');
           }
         }
       }
@@ -90,7 +90,7 @@ export default function Auth() {
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6 relative overflow-hidden font-sans">
       {/* Animated Background Orbs (Watermelon UI style) */}
       <div className="absolute top-[10%] right-[5%] w-[40%] h-[40%] bg-pink-600/20 blur-[150px] rounded-full pointer-events-none animate-[float_10s_ease-in-out_infinite]" />
-      <div className="absolute bottom-[10%] left-[5%] w-[40%] h-[40%] bg-blue-600/20 blur-[150px] rounded-full pointer-events-none animate-[float_12s_ease-in-out_infinite_reverse]" style={{ animationDelay: '1s'}} />
+      <div className="absolute bottom-[10%] left-[5%] w-[40%] h-[40%] bg-blue-600/20 blur-[150px] rounded-full pointer-events-none animate-[float_12s_ease-in-out_infinite_reverse]" style={{ animationDelay: '1s' }} />
       <div className="absolute top-[40%] left-[40%] w-[20%] h-[20%] bg-purple-600/20 blur-[100px] rounded-full pointer-events-none animate-pulse duration-1000" />
 
       <GlassCard className="w-full max-w-md p-8 md:p-10 z-10 opacity-0 animate-[fadeInUp_0.8s_ease-out_forwards]">
@@ -109,38 +109,38 @@ export default function Auth() {
 
         <form onSubmit={handleAuth} className="space-y-5">
           {!isLogin && (
-            <InputField 
+            <InputField
               label="Full Name"
-              type="text" 
+              type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="John Doe"
               required={!isLogin}
             />
           )}
-          
-          <InputField 
+
+          <InputField
             label="Email"
-            type="email" 
+            type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@college.edu"
             required
           />
-          
-          <InputField 
+
+          <InputField
             label="Password"
-            type="password" 
+            type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             required
           />
-          
+
           {!isLogin && (
-            <InputField 
+            <InputField
               label="Confirm Password"
-              type="password" 
+              type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
@@ -149,7 +149,7 @@ export default function Auth() {
           )}
 
           <div className="pt-2">
-            <GradientButton 
+            <GradientButton
               type="submit"
               loading={loading}
               className="w-full"
@@ -160,7 +160,7 @@ export default function Auth() {
           </div>
         </form>
 
-        <div className="relative my-8">
+        {/* <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-white/10"></div>
           </div>
@@ -169,11 +169,11 @@ export default function Auth() {
               Or continue with
             </span>
           </div>
-        </div>
+        </div> */}
 
-        <button 
+        {/* <button
           onClick={handleGoogleAuth}
-          className="w-full bg-white/5 border border-white/10 text-white font-semibold py-3.5 rounded-xl hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all duration-300 flex items-center justify-center gap-3 group"
+          className="w-full bg-white/5 border border-white/10 text-white font-semibold py-3.5 rounded-xl hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-all duration-300 flex items-center justify-center gap-3 group hidden"
         >
           <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
             <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -183,11 +183,11 @@ export default function Auth() {
             <path fill="none" d="M1 1h22v22H1z" />
           </svg>
           Google
-        </button>
+        </button> */}
 
         <div className="mt-8 text-center text-sm text-zinc-400">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button 
+          <button
             type="button"
             onClick={() => setIsLogin(!isLogin)}
             className="text-pink-400 hover:text-pink-300 font-semibold transition-colors hover:drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]"
@@ -197,7 +197,8 @@ export default function Auth() {
         </div>
       </GlassCard>
 
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes float {
           0%, 100% { transform: translateY(0) scale(1); }
           50% { transform: translateY(-30px) scale(1.05); }
