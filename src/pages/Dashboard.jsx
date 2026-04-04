@@ -4,7 +4,7 @@ import { useNavigate, Routes, Route, Link, useLocation } from 'react-router-dom'
 import { Loader2, Search, MessageSquare, Bell, Users, Code, Calendar, Briefcase, LogOut } from 'lucide-react';
 
 import Connections from './Connections';
-const Projects = () => <div className="p-6"><h2 className="text-2xl font-bold mb-4">Projects</h2><p className="text-zinc-400">Discover and join projects.</p></div>;
+import Projects from './Projects';
 const Hackathons = () => <div className="p-6"><h2 className="text-2xl font-bold mb-4">Hackathons</h2><p className="text-zinc-400">Find hackathons and teammates.</p></div>;
 const Opportunities = () => <div className="p-6"><h2 className="text-2xl font-bold mb-4">Opportunities</h2><p className="text-zinc-400">Internship and job postings.</p></div>;
 
@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [connectionRequests, setConnectionRequests] = useState([]);
   const [connectionCount, setConnectionCount] = useState(0);
+  const [projectInvitations, setProjectInvitations] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
@@ -69,6 +70,17 @@ export default function Dashboard() {
           
           setConnectionRequests(enriched);
         }
+
+        // Fetch pending project invitations (where user_id is me but sender_id is not me)
+        const { data: projectReqs } = await supabase
+          .from('project_requests')
+          .select('*, sender:profiles!project_requests_sender_id_fkey(full_name, avatar_url), project:projects(name)')
+          .eq('user_id', userId)
+          .neq('sender_id', userId)
+          .eq('status', 'pending');
+        
+        setProjectInvitations(projectReqs || []);
+
       } catch (err) {
         console.error(err);
       }
@@ -99,6 +111,14 @@ export default function Dashboard() {
             detail: payload.new.user1_id === profile.id ? payload.new.user2_id : payload.new.user1_id 
           }));
         }
+      })
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'project_requests',
+        filter: `user_id=eq.${profile?.id}`
+      }, () => {
+        if (profile) fetchNotificationsAndCount(profile.id);
       })
       .subscribe();
 
@@ -151,7 +171,36 @@ export default function Dashboard() {
       // Notify Connections UI to update locally
       window.dispatchEvent(new CustomEvent('requestRejected', { detail: senderId }));
     } catch (err) {
-      console.error('Error rejecting request:', err);
+      error('Error rejecting request:', err);
+    }
+  };
+
+  const handleAcceptProjectInvitation = async (invitation) => {
+    try {
+      await supabase
+        .from('project_requests')
+        .update({ status: 'accepted' })
+        .eq('id', invitation.id);
+      
+      setProjectInvitations(prev => prev.filter(i => i.id !== invitation.id));
+      // Trigger update in Projects component if active
+      window.dispatchEvent(new CustomEvent('projectRequestUpdated'));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRejectProjectInvitation = async (invitationId) => {
+    try {
+      await supabase
+        .from('project_requests')
+        .update({ status: 'rejected' })
+        .eq('id', invitationId);
+      
+      setProjectInvitations(prev => prev.filter(i => i.id !== invitationId));
+      window.dispatchEvent(new CustomEvent('projectRequestUpdated'));
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -189,7 +238,7 @@ export default function Dashboard() {
               className="p-2 hover:bg-zinc-800 rounded-full text-zinc-400 hover:text-white transition-colors relative"
             >
               <Bell className="w-5 h-5" />
-              {connectionRequests.length > 0 && (
+              {(connectionRequests.length > 0 || projectInvitations.length > 0) && (
                 <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-pink-500 rounded-full shadow-[0_0_8px_rgba(219,39,119,0.8)] border-2 border-zinc-900"></span>
               )}
             </button>
@@ -214,42 +263,53 @@ export default function Dashboard() {
                     </div>
                   ) : (
                     <div className="flex flex-col">
-                      {connectionRequests.map(req => (
-                        <div key={req.id} className="p-4 border-b border-zinc-800/40 hover:bg-white/5 transition-colors group">
-                          <div className="flex gap-3 items-start">
-                            <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 flex-shrink-0 border border-zinc-700 group-hover:border-pink-500/50 transition-colors">
-                              {req.sender?.avatar_url ? (
-                                <img src={req.sender.avatar_url} alt={req.sender.full_name} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex justify-center items-center font-bold text-zinc-400 text-sm">
-                                  {req.sender?.full_name?.charAt(0).toUpperCase()}
+                      {/* Connection Requests Section */}
+                      {connectionRequests.length > 0 && (
+                        <>
+                          <div className="px-4 py-2 bg-zinc-800/20 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Connection Requests</div>
+                          {connectionRequests.map(req => (
+                            <div key={req.id} className="p-4 border-b border-zinc-800/40 hover:bg-white/5 transition-colors group">
+                              <div className="flex gap-3 items-start">
+                                <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 flex-shrink-0 border border-zinc-700 group-hover:border-pink-500/50 transition-colors">
+                                  {req.sender?.avatar_url ? <img src={req.sender.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex justify-center items-center font-bold text-zinc-500 text-sm">{req.sender?.full_name?.charAt(0)}</div>}
                                 </div>
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-sm text-zinc-300">
-                                <span className="font-semibold text-white">{req.sender?.full_name}</span> wants to connect.
-                              </p>
-                              <p className="text-xs text-purple-400 mt-0.5">{req.sender?.domain}</p>
-                              
-                              <div className="flex gap-2 mt-3">
-                                <button 
-                                  onClick={() => handleAcceptRequest(req)}
-                                  className="flex-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-gradient-to-r from-pink-500/80 to-purple-600/80 text-white hover:from-pink-500 hover:to-purple-600 transition-all shadow-[0_0_10px_rgba(219,39,119,0.3)] hover:shadow-[0_0_15px_rgba(219,39,119,0.5)]"
-                                >
-                                  Accept
-                                </button>
-                                <button 
-                                  onClick={() => handleRejectRequest(req.id, req.sender_id)}
-                                  className="flex-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-zinc-800/80 text-zinc-300 hover:bg-zinc-700 hover:text-white transition-all border border-zinc-700/50"
-                                >
-                                  Reject
-                                </button>
+                                <div className="flex-1">
+                                  <p className="text-sm text-zinc-300"><span className="font-semibold text-white">{req.sender?.full_name}</span> wants to connect.</p>
+                                  <div className="flex gap-2 mt-3">
+                                    <button onClick={() => handleAcceptRequest(req)} className="flex-1 text-[10px] font-black px-3 py-1.5 rounded-lg bg-pink-500 text-white transition-all shadow-[0_0_10px_rgba(219,39,119,0.3)]">Accept</button>
+                                    <button onClick={() => handleRejectRequest(req.id, req.sender_id)} className="flex-1 text-[10px] font-bold px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-400 border border-zinc-700">Reject</button>
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </div>
-                      ))}
+                          ))}
+                        </>
+                      )}
+
+                      {/* Project Invitations Section */}
+                      {projectInvitations.length > 0 && (
+                        <>
+                          <div className="px-4 py-2 bg-zinc-800/20 text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Project Invitations</div>
+                          {projectInvitations.map(inv => (
+                            <div key={inv.id} className="p-4 border-b border-zinc-800/40 hover:bg-white/5 transition-colors group">
+                              <div className="flex gap-3 items-start">
+                                <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 flex-shrink-0 border border-zinc-700 group-hover:border-purple-500/50 transition-colors">
+                                  {inv.sender?.avatar_url ? <img src={inv.sender.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex justify-center items-center font-bold text-zinc-500 text-sm">{inv.sender?.full_name?.charAt(0)}</div>}
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm text-zinc-300">
+                                    <span className="font-semibold text-white">{inv.sender?.full_name}</span> invited you to join <span className="text-purple-400 font-bold">{inv.project?.name}</span>.
+                                  </p>
+                                  <div className="flex gap-2 mt-3">
+                                    <button onClick={() => handleAcceptProjectInvitation(inv)} className="flex-1 text-[10px] font-black px-3 py-1.5 rounded-lg bg-purple-500 text-white transition-all shadow-[0_0_10px_rgba(168,85,247,0.3)]">Accept</button>
+                                    <button onClick={() => handleRejectProjectInvitation(inv.id)} className="flex-1 text-[10px] font-bold px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-400 border border-zinc-700">Reject</button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

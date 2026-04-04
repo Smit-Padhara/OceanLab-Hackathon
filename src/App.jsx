@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Messages from './pages/Messages';
 import MyConnections from './pages/MyConnections';
+import MyProjects from './pages/MyProjects';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/my-projects" element={<MyProjects />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/my-connections" element={<MyConnections />} />
           <Route path="*" element={<Navigate to="/" replace />} />

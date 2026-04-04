@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate, Link } from 'react-router-dom';
-import { Loader2, ArrowLeft, Code, Briefcase, ExternalLink, Edit2, Save, X, Check } from 'lucide-react';
+import { Loader2, ArrowLeft, Code, Briefcase, ExternalLink, Edit2, Save, X, Check, Folder } from 'lucide-react';
 import { GlassCard, GradientButton, InputField, TagInput, AvatarUpload, GlowText } from '../components/WatermelonUI';
 
 export default function Profile() {
@@ -178,12 +178,22 @@ export default function Profile() {
         
         <Link 
           to="/my-connections"
-          className="bg-zinc-900/40 border border-zinc-800 rounded-3xl p-6 mt-6 flex flex-col items-center justify-center min-w-[140px] shadow-inner hover:border-purple-500/40 hover:bg-purple-500/5 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all duration-300 cursor-pointer group"
+          className="bg-zinc-900/40 border border-zinc-800 rounded-3xl p-6 mt-6 flex flex-col items-center justify-center min-w-[140px] shadow-inner hover:border-purple-500/40 hover:bg-purple-500/5 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all duration-300 cursor-pointer group w-full"
           title="View your connections"
         >
           <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-500 mb-1 group-hover:from-pink-300 group-hover:to-purple-400 transition-all">{connectionCount}</span>
           <span className="text-sm font-semibold text-zinc-500 uppercase tracking-wider text-center group-hover:text-purple-400 transition-colors">Connections</span>
-          <span className="text-[10px] text-zinc-600 mt-1 group-hover:text-zinc-400 transition-colors">View all →</span>
+        </Link>
+
+        <Link 
+          to="/my-projects"
+          className="bg-zinc-900/40 border border-zinc-800 rounded-3xl p-6 mt-3 flex flex-col items-center justify-center min-w-[140px] shadow-inner hover:border-pink-500/40 hover:bg-pink-500/5 hover:shadow-[0_0_20px_rgba(236,72,153,0.15)] transition-all duration-300 cursor-pointer group w-full"
+          title="View your projects"
+        >
+          <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 mb-1 group-hover:from-purple-300 group-hover:to-pink-400 transition-all flex items-center justify-center gap-2">
+            <Folder className="w-8 h-8 text-pink-500" />
+          </span>
+          <span className="text-sm font-semibold text-zinc-500 uppercase tracking-wider text-center group-hover:text-pink-400 transition-colors">Projects</span>
         </Link>
       </div>
 
