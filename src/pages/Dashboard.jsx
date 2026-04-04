@@ -6,8 +6,7 @@ import { Loader2, Search, MessageSquare, Bell, Users, Code, Calendar, Briefcase,
 import Connections from './Connections';
 import Projects from './Projects';
 import Hackathons from './Hackathons';
-const Opportunities = () => <div className="p-6"><h2 className="text-2xl font-bold mb-4">Opportunities</h2><p className="text-zinc-400">Internship and job postings.</p></div>;
-
+import Opportunities from './Opportunities';
 
 export default function Dashboard() {
   const navigate = useNavigate();
