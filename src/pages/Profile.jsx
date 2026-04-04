@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate, Link } from 'react-router-dom';
-import { Loader2, ArrowLeft, Code, Briefcase, ExternalLink, Edit2, Save, X, Check, Folder } from 'lucide-react';
+import { Loader2, ArrowLeft, Code, Briefcase, ExternalLink, Edit2, Save, X, Check, Folder, Users } from 'lucide-react';
 import { GlassCard, GradientButton, InputField, TagInput, AvatarUpload, GlowText } from '../components/WatermelonUI';
 
 export default function Profile() {
@@ -194,6 +194,17 @@ export default function Profile() {
             <Folder className="w-8 h-8 text-pink-500" />
           </span>
           <span className="text-sm font-semibold text-zinc-500 uppercase tracking-wider text-center group-hover:text-pink-400 transition-colors">Projects</span>
+        </Link>
+
+        <Link 
+          to="/my-communities"
+          className="bg-zinc-900/40 border border-zinc-800 rounded-3xl p-6 mt-3 flex flex-col items-center justify-center min-w-[140px] shadow-inner hover:border-blue-500/40 hover:bg-blue-500/5 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] transition-all duration-300 cursor-pointer group w-full"
+          title="View your communities"
+        >
+          <span className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 mb-1 group-hover:from-blue-300 group-hover:to-indigo-400 transition-all flex items-center justify-center gap-2">
+            <Users className="w-8 h-8 text-blue-500" />
+          </span>
+          <span className="text-sm font-semibold text-zinc-500 uppercase tracking-wider text-center group-hover:text-blue-400 transition-colors">Communities</span>
         </Link>
       </div>
 
